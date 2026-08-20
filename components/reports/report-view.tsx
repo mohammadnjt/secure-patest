@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { type ScanRun, type Project, type ScenarioResult } from '@/lib/supabase-client';
 import { cn } from '@/lib/utils';
-import { STATUS_COLORS, SEVERITY_COLORS } from '@/lib/scenarios';
+import { STATUS_COLORS, SEVERITY_COLORS, CONFIDENCE_COLORS } from '@/lib/scenarios';
 import {
   FileText, Printer, Download, ChevronDown, Globe,
-  CheckCircle2, XCircle, AlertTriangle, ShieldAlert, ScanLine,
+  CheckCircle2, XCircle, AlertTriangle, ShieldAlert, ScanLine, ShieldOff,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export function ReportView({
     .filter((r) => r.status === 'vulnerable')
     .sort((a, b) => (SEVERITY_RANK[a.severity] ?? 9) - (SEVERITY_RANK[b.severity] ?? 9));
 
+  const falsePositiveResults = results.filter((r) => r.status === 'false_positive');
   const manualResults = results.filter((r) => r.status === 'manual_review');
 
   const handlePrint = () => {
@@ -224,6 +225,14 @@ export function ReportView({
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-foreground">{result.scenario_code}</span>
+                            {result.confidence_level && (
+                              <span className={cn(
+                                'px-1.5 py-0.5 rounded text-[10px] font-medium border uppercase',
+                                CONFIDENCE_COLORS[result.confidence_level] || 'bg-slate-500/10 text-slate-400 border-slate-500/30'
+                              )} title="Confidence Level">
+                                {result.confidence_level.slice(0, 3)}
+                              </span>
+                            )}
                             <span className={cn(
                               'px-1.5 py-0.5 rounded text-[10px] font-medium border',
                               SEVERITY_COLORS[result.severity]
@@ -264,6 +273,39 @@ export function ReportView({
                     )}
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* False Positives */}
+          {falsePositiveResults.length > 0 && (
+            <section className="mb-8">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                False Positives ({falsePositiveResults.length})
+              </h3>
+              <div className="rounded-md border border-purple-500/20 bg-purple-500/5 p-4">
+                <p className="text-xs text-muted-foreground mb-3">
+                  The following findings were flagged by automated tools but have been manually marked as false positives. They do not pose a security risk.
+                </p>
+                <div className="space-y-2">
+                  {falsePositiveResults.map((result) => (
+                    <div key={result.id} className="flex items-start gap-3 text-xs">
+                      <ShieldOff className="h-4 w-4 text-purple-400 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono text-muted-foreground">{result.scenario_code}</span>
+                          <span className="font-semibold text-foreground">{result.scenario_title}</span>
+                          {result.confidence_level && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium border uppercase bg-slate-500/10 text-slate-400 border-slate-500/30">
+                              {result.confidence_level.slice(0, 3)} CONF
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground">{result.evidence_summary}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           )}

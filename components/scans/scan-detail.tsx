@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { type ScanRun, type Project, type ScenarioResult } from '@/lib/supabase-client';
 import { cn } from '@/lib/utils';
-import { STATUS_COLORS, SEVERITY_COLORS } from '@/lib/scenarios';
+import { STATUS_COLORS, SEVERITY_COLORS, CONFIDENCE_COLORS } from '@/lib/scenarios';
 import {
   ArrowLeft, ScanLine, Globe, CheckCircle2, XCircle, AlertTriangle,
   Clock, Loader2, FileText, ChevronDown, ChevronRight, Filter,
-  RefreshCw, Eye, Download, Bot, UserCog, Hand,
+  RefreshCw, Eye, Download, Bot, UserCog, Hand, ShieldOff,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -273,6 +273,7 @@ export function ScanDetail({
               <option value="manual_review">Manual Review</option>
               <option value="pass">Passed</option>
               <option value="fail">Failed</option>
+              <option value="false_positive">False Positive</option>
             </select>
             <select
               value={severityFilter}
@@ -351,6 +352,14 @@ export function ScanDetail({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      {result.confidence_level && (
+                        <span className={cn(
+                          'px-2 py-0.5 rounded text-[10px] font-medium border uppercase',
+                          CONFIDENCE_COLORS[result.confidence_level] || 'bg-slate-500/10 text-slate-400 border-slate-500/30'
+                        )} title="Confidence Level">
+                          {result.confidence_level.slice(0, 3)}
+                        </span>
+                      )}
                       {result.status === 'vulnerable' && (
                         <span className={cn(
                           'px-2 py-0.5 rounded text-[10px] font-medium border',
@@ -420,14 +429,40 @@ export function ScanDetail({
                         {/* Manual review placeholder */}
                         {result.status === 'manual_review' && (
                           <div className="rounded-md border border-warning/20 bg-warning/5 p-3 lg:col-span-2">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                              <span className="text-xs font-semibold text-warning">Manual Review Required</span>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1.5">
+                                <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+                                <span className="text-xs font-semibold text-warning">Manual Review Required</span>
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground mb-3">
                               This scenario requires human verification. Use the referenced tool to manually test and update the result.
                               {result.tool_used && ` Recommended tool: ${result.tool_used}.`}
                             </p>
+                          </div>
+                        )}
+
+                        {/* Actions (False Positive) */}
+                        {result.status === 'vulnerable' && (
+                          <div className="lg:col-span-2 flex justify-end">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await supabase.from('scenario_results').update({ status: 'false_positive' }).eq('id', result.id);
+                                  toast.success('Marked as false positive');
+                                  router.refresh();
+                                } catch (err) {
+                                  toast.error('Failed to update result');
+                                }
+                              }}
+                            >
+                              <ShieldOff className="h-3.5 w-3.5 mr-1.5" />
+                              Mark as False Positive
+                            </Button>
                           </div>
                         )}
                       </div>

@@ -9,6 +9,7 @@ export function generateReportHTML(run: ScanRun, project: Project, results: Scen
     .filter((r) => r.status === 'vulnerable')
     .sort((a, b) => (a.cvss_score || 0) < (b.cvss_score || 0) ? 1 : -1);
 
+  const falsePositiveResults = results.filter((r) => r.status === 'false_positive');
   const manualResults = results.filter((r) => r.status === 'manual_review');
   const passResults = results.filter((r) => r.status === 'pass' || r.status === 'pending' || r.status === 'skipped');
 
@@ -208,6 +209,7 @@ export function generateReportHTML(run: ScanRun, project: Project, results: Scen
             <div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="vuln-code">#${idx + 1} ${escapeHtml(r.scenario_code)}</span>
+                ${r.confidence_level ? `<span class="badge" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; border-color: rgba(100, 116, 139, 0.4);">${escapeHtml(r.confidence_level).slice(0, 3)} CONF</span>` : ''}
                 <span class="badge bg-${r.severity}">${escapeHtml(r.severity)}</span>
                 <span style="font-size: 11px; color: var(--text-muted);">Category: ${escapeHtml(r.category)}</span>
               </div>
@@ -252,6 +254,33 @@ export function generateReportHTML(run: ScanRun, project: Project, results: Scen
       <p style="font-size: 13px; color: var(--primary);">No active vulnerabilities detected during automated scenario evaluation.</p>
     </div>
     `}
+
+    ${falsePositiveResults.length > 0 ? `
+    <div class="section-card">
+      <div class="section-title">False Positives (${falsePositiveResults.length})</div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">The following findings were flagged by automated tools but manually marked as false positives.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Scenario</th>
+            <th>Confidence</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${falsePositiveResults.map((r) => `
+            <tr>
+              <td style="font-family: monospace; font-weight: bold; color: #a78bfa;">${escapeHtml(r.scenario_code)}</td>
+              <td>${escapeHtml(r.scenario_title)}</td>
+              <td style="text-transform: uppercase; font-size: 10px;">${escapeHtml(r.confidence_level || 'N/A')}</td>
+              <td style="color: var(--text-muted);">${escapeHtml(r.category)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ` : ''}
 
     ${manualResults.length > 0 ? `
     <div class="section-card">

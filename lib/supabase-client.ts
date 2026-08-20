@@ -62,7 +62,8 @@ export type ScenarioResult = {
   scenario_title: string;
   category: string;
   execution_type: 'auto' | 'semi-auto' | 'manual';
-  status: 'pending' | 'pass' | 'fail' | 'vulnerable' | 'manual_review' | 'skipped';
+  status: 'pending' | 'pass' | 'fail' | 'vulnerable' | 'manual_review' | 'skipped' | 'false_positive';
+  confidence_level?: 'low' | 'medium' | 'high' | 'certain';
   severity: 'info' | 'low' | 'medium' | 'high' | 'critical';
   cvss_score: number;
   tool_used: string | null;
@@ -188,6 +189,7 @@ const mockScenarioResults: ScenarioResult[] = [
     category: 'Input Handling',
     execution_type: 'auto',
     status: 'vulnerable',
+    confidence_level: 'high',
     severity: 'high',
     cvss_score: 7.5,
     tool_used: 'ZAP Active Scan + headless browser',
@@ -420,6 +422,7 @@ class MockQueryBuilder {
               category: sc?.category || 'Input Handling',
               execution_type: sc?.executionType || 'auto',
               status: idx < 6 ? 'vulnerable' : 'manual_review',
+              confidence_level: idx % 2 === 0 ? 'high' : 'medium',
               severity: sc?.severity || 'high',
               cvss_score: sc?.severity === 'critical' ? 9.5 : 7.5,
               tool_used: sc?.tool || 'PTaaS Engine',

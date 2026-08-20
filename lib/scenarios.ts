@@ -205,6 +205,7 @@ export const STATUS_COLORS: Record<string, string> = {
   pass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   fail: 'bg-red-500/10 text-red-400 border-red-500/30',
   vulnerable: 'bg-red-600/15 text-red-500 border-red-600/40',
+  false_positive: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
   manual_review: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
   pending: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
   skipped: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30',
@@ -212,6 +213,13 @@ export const STATUS_COLORS: Record<string, string> = {
   running: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
   completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   cancelled: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30',
+};
+
+export const CONFIDENCE_COLORS: Record<string, string> = {
+  certain: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+  high: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+  medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+  low: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
 };
 
 export const EXECUTION_TYPE_LABELS: Record<ExecutionType, string> = {
