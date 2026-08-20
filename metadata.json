@@ -1,0 +1,8 @@
+{
+  "name": "SecScan PTaaS",
+  "description": "Penetration Testing as a Service — automated security assessment with 101 scenario coverage, scope authorization, and compliance reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
